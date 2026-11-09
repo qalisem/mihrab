@@ -82,7 +82,7 @@ button.ghost{appearance:none;background:transparent;border:1px solid var(--line)
 .stat{display:flex;flex-direction:column;align-items:center}
 .stat b{font-family:var(--f-mono);font-size:20px;font-weight:500;font-variant-numeric:tabular-nums}
 .stat span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
-textarea#share{width:100%;font:13px var(--f-mono);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px;resize:none}
+textarea#share{width:100%;box-sizing:border-box;display:block;font:13px var(--f-mono);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px;resize:none}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .how{font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
 .needle{transition:transform .35s cubic-bezier(.2,.9,.3,1.2)}
@@ -189,8 +189,8 @@ for(let a=0;a<360;a+=5){
 [["N",0],["E",90],["S",180],["W",270]].forEach(([l,a])=>{const [x,y]=P(a,96);const t=el("text",{x,y:y+7,"text-anchor":"middle","font-size":20,"font-weight":700,fill:"var(--ink)","font-family":"Reem Kufi, sans-serif"});t.textContent=l});
 const arc=el("path",{fill:"var(--brass-soft)",stroke:"none"});arc.style.display="none";
 const flatG=el("g",{class:"needle"});flatG.style.display="none";
-el("line",{x1:150,y1:150,x2:150,y2:60,stroke:"var(--muted)","stroke-width":1.5,"stroke-dasharray":"2 4"},flatG);
-const flatT=el("text",{x:150,y:54,"text-anchor":"middle","font-size":9,fill:"var(--muted)","font-family":"IBM Plex Sans, sans-serif","letter-spacing":".08em"},flatG);flatT.textContent="FLAT MAP";
+el("line",{x1:150,y1:150,x2:150,y2:76,stroke:"var(--muted)","stroke-width":1.5,"stroke-dasharray":"2 4"},flatG);
+el("circle",{cx:150,cy:76,r:3,fill:"var(--muted)"},flatG);
 const truthG=el("g",{class:"needle"});truthG.style.display="none";
 el("line",{x1:150,y1:150,x2:150,y2:38,stroke:"var(--truth)","stroke-width":2.5,"stroke-dasharray":"5 4"},truthG);
 el("rect",{x:141,y:22,width:18,height:18,fill:"var(--truth)",rx:1.5},truthG);
@@ -245,7 +245,7 @@ function reveal(fresh){
   truthG.style.display="";rot(truthG,fresh?g:c.truth);
   if(fresh)requestAnimationFrame(()=>requestAnimationFrame(()=>rot(truthG,c.truth)));
   const gap=diff(c.truth,c.flat);
-  if(gap>=8){flatG.style.display="";rot(flatG,c.flat);flatT.setAttribute("transform",c.flat>90&&c.flat<270?"rotate(180 150 51)":"")}else flatG.style.display="none";
+  if(gap>=8){flatG.style.display="";rot(flatG,c.flat)}else flatG.style.display="none";
   arc.setAttribute("d",arcPath(g,c.truth,140));arc.style.display="";
   const t=tier(e);
   let note=`Qibla from ${c.name} is <b>${Math.round(c.truth)}° ${point(c.truth)}</b>, ${c.dist.toLocaleString()} km away.`;
@@ -297,7 +297,7 @@ function renderEnd(){
   box.innerHTML=`<div><div class="eyebrow">${mode==="daily"?"Today's score":"Practice score"}</div><div class="score">${total}<small> / 500</small></div><div class="rank">${rankOf(total)}</div></div>
   <div class="minis">${minis}</div>
   ${statsHtml}
-  ${mode==="daily"?`<textarea id="share" rows="3" readonly>${share}</textarea>
+  ${mode==="daily"?`<textarea id="share" rows="${share.split("\n").length}" readonly>${share}</textarea>
   <div class="row"><button class="primary" id="copy" style="width:auto">Copy result</button><span class="hint" id="next"></span></div>`:""}
   <button class="ghost" id="practice">${mode==="daily"?"Practice with random cities":"Another practice set"}</button>
   ${mode==="practice"?`<button class="ghost" id="back">Back to today's result</button>`:""}`;
