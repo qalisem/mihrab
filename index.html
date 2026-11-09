@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mihrab</title>
+<meta name="description" content="A daily puzzle: point toward the Kaaba from five cities around the world. New cities every day.">
+<meta name="theme-color" content="#14211F">
+<meta property="og:title" content="Mihrab">
+<meta property="og:description" content="Point toward the Kaaba from five cities. Your flat-map instincts are wrong. New cities every day.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%2714%27 fill=%27%2314211F%27/%3E%3Cpath d=%27M16 4l4 12h-8z%27 fill=%27%23D8A94C%27/%3E%3C/svg%3E">
+<style>
+/* Layout: one narrow column. The compass dial is the hero; header above, readout and one action below. */
+:root{
+  --bg:#E8ECE5; --surface:#F5F7F2; --ink:#1B2526; --muted:#5D6A67; --line:#C6CEC6;
+  --brass:#97691A; --brass-soft:rgba(151,105,26,.16); --truth:#1B2526;
+  --good:#2E7A4C; --warn:#A97A1F; --bad:#B0442C;
+  --f-display:"Reem Kufi","Trebuchet MS",sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1617; --surface:#172123; --ink:#E6E2D5; --muted:#93A09C; --line:#2C393B;
+  --brass:#D8A94C; --brass-soft:rgba(216,169,76,.18); --truth:#E6E2D5;
+  --good:#5DB47F; --warn:#D8A94C; --bad:#E27C61; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0F1617; --surface:#172123; --ink:#E6E2D5; --muted:#93A09C; --line:#2C393B;
+  --brass:#D8A94C; --brass-soft:rgba(216,169,76,.18); --truth:#E6E2D5;
+  --good:#5DB47F; --warn:#D8A94C; --bad:#E27C61; color-scheme:dark }
+
+html,body{height:100%}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 32px}
+.wrap{max-width:440px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:12px}
+h1{font-family:var(--f-display);font-weight:700;font-size:34px;line-height:1;margin:0;letter-spacing:.01em}
+h1 span{color:var(--brass)}
+.meta{font-family:var(--f-mono);font-size:12px;color:var(--muted);text-align:right;letter-spacing:.04em;text-transform:uppercase}
+.dots{display:flex;gap:6px;justify-content:flex-end;margin-top:6px}
+.dot{width:10px;height:10px;border-radius:2px;background:var(--line)}
+.dot.cur{outline:2px solid var(--brass);outline-offset:1px}
+.prompt{display:flex;flex-direction:column;gap:2px}
+.eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.city{font-family:var(--f-display);font-size:28px;font-weight:500;line-height:1.15;text-wrap:balance}
+.sub{color:var(--muted);font-size:14px}
+.dial-box{position:relative;width:100%;max-width:340px;margin:0 auto;aspect-ratio:1}
+svg#dial{width:100%;height:100%;touch-action:none;cursor:grab;display:block;border-radius:50%}
+svg#dial:focus-visible{outline:3px solid var(--brass);outline-offset:4px}
+svg#dial.locked{cursor:default}
+.pulse{position:absolute;inset:0;border-radius:50%;border:3px solid var(--good);opacity:0;pointer-events:none}
+.pulse.go{animation:pulse 1s ease-out}
+@keyframes pulse{0%{opacity:.9;transform:scale(.85)}100%{opacity:0;transform:scale(1.15)}}
+.readout{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.deg{font-family:var(--f-mono);font-size:30px;font-variant-numeric:tabular-nums}
+.hint{font-size:13px;color:var(--muted)}
+button.primary{appearance:none;border:0;background:var(--ink);color:var(--bg);font:600 16px var(--f-body);padding:14px 18px;border-radius:10px;cursor:pointer;width:100%}
+button.primary:focus-visible,button.ghost:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+button.ghost{appearance:none;background:transparent;border:1px solid var(--line);color:var(--ink);font:500 14px var(--f-body);padding:12px 14px;border-radius:10px;cursor:pointer}
+.result{border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:6px}
+.result .big{font-family:var(--f-mono);font-size:20px;font-variant-numeric:tabular-nums}
+.bull{font-family:var(--f-display);font-size:22px;color:var(--good);letter-spacing:.02em}
+.note{font-size:14px;color:var(--muted);max-width:60ch}
+.note b{color:var(--ink);font-weight:600}
+.end{display:flex;flex-direction:column;gap:16px}
+.score{font-family:var(--f-display);font-size:56px;line-height:1}
+.score small{font-size:20px;color:var(--muted)}
+.rank{font-family:var(--f-display);font-size:20px;color:var(--brass);margin-top:4px}
+.minis{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.mini{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}
+.mini svg{width:100%;max-width:64px;height:auto}
+.mini .nm{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.mini .e{font-family:var(--f-mono);font-size:12px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;border-block:1px solid var(--line);padding-block:12px}
+.stat{display:flex;flex-direction:column;align-items:center}
+.stat b{font-family:var(--f-mono);font-size:20px;font-weight:500;font-variant-numeric:tabular-nums}
+.stat span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+textarea#share{width:100%;font:13px var(--f-mono);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px;resize:none}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.how{font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+.needle{transition:transform .35s cubic-bezier(.2,.9,.3,1.2)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>Mihr<span>a</span>b</h1>
+    <div>
+      <div class="meta" id="meta">No. 1</div>
+      <div class="dots" id="dots"></div>
+    </div>
+  </header>
+
+  <section id="play">
+    <div class="prompt">
+      <div class="eyebrow" id="roundLabel">Round 1 of 5 · You are in</div>
+      <div class="city" id="city">Toronto</div>
+      <div class="sub" id="country">Canada</div>
+    </div>
+  </section>
+
+  <div class="dial-box" id="dialBox">
+    <svg id="dial" viewBox="0 0 300 300" tabindex="0" role="slider" aria-label="Qibla bearing in degrees" aria-valuemin="0" aria-valuemax="359" aria-valuenow="0"></svg>
+    <div class="pulse" id="pulse"></div>
+  </div>
+
+  <div class="readout" id="readout">
+    <div class="deg" id="deg">0° N</div>
+    <div class="hint" id="hint">Drag the needle toward Makkah</div>
+  </div>
+
+  <div id="resultBox" class="result" hidden></div>
+  <button class="primary" id="action">Lock in</button>
+
+  <section id="endBox" class="end" hidden></section>
+
+  <div class="how">Each day: five cities. Point toward the Kaaba from each one along the shortest path over the globe. Within 2° is a bullseye. Same cities for everyone.</div>
+</div>
+
+<script src="cities.js"></script>
+<script src="daily.js"></script>
+<script>
+(function(){
+const KAABA=[21.4225,39.8262];
+
+const R=Math.PI/180, N=5;
+const norm=a=>((a%360)+360)%360;
+const diff=(a,b)=>{let d=Math.abs(norm(a)-norm(b));return d>180?360-d:d};
+function greatCircle(lat1,lon1,lat2,lon2){
+  const p1=lat1*R,p2=lat2*R,dl=(lon2-lon1)*R;
+  const y=Math.sin(dl)*Math.cos(p2), x=Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(dl);
+  return norm(Math.atan2(y,x)/R);
+}
+function flatMap(lat1,lon1,lat2,lon2){
+  let dl=(lon2-lon1)*R; if(dl>Math.PI)dl-=2*Math.PI; if(dl<-Math.PI)dl+=2*Math.PI;
+  const dpsi=Math.log(Math.tan(Math.PI/4+lat2*R/2)/Math.tan(Math.PI/4+lat1*R/2));
+  return norm(Math.atan2(dl,dpsi)/R);
+}
+function km(lat1,lon1,lat2,lon2){
+  const a=Math.sin((lat2-lat1)*R/2)**2+Math.cos(lat1*R)*Math.cos(lat2*R)*Math.sin((lon2-lon1)*R/2)**2;
+  return Math.round(6371*2*Math.asin(Math.sqrt(a)));
+}
+const NAMES=["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"];
+const point=a=>NAMES[Math.round(norm(a)/22.5)%16];
+const scoreOf=e=>e<=2?100:Math.round(100*Math.max(0,1-e/90));
+const tier=e=>e<=5?"good":e<=20?"warn":e<=45?"mid":"bad";
+const colOf=t=>t==="good"?"good":t==="bad"?"bad":"warn";
+const EMOJI={good:"🟩",warn:"🟨",mid:"🟧",bad:"🟥"};
+const RANKS=[[480,"Astrolabe"],[420,"Master navigator"],[340,"Caravan guide"],[240,"Traveller"],[0,"Lost in the dunes"]];
+const rankOf=s=>RANKS.find(r=>s>=r[0])[1];
+const build=c=>({name:c.name,country:c.country,truth:greatCircle(c.lat,c.lon,...KAABA),flat:flatMap(c.lat,c.lon,...KAABA),dist:km(c.lat,c.lon,...KAABA)});
+
+const POOL=CITIES.filter(c=>km(c.lat,c.lon,...KAABA)>500);
+// Daily schedule (shared/daily.js): no city repeats until the pool is used up
+const key=Daily.dateKey(), dayNo=Daily.dayNumber();
+const dailySet=()=>Daily.pick(dayNo,N,POOL.length,"mihrab").map(i=>build(POOL[i]));
+function pickRandom(){const p=POOL.map((c,i)=>i);for(let i=p.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[p[i],p[j]]=[p[j],p[i]]}return p.slice(0,N).map(i=>build(POOL[i]))}
+const store={get(k){try{return JSON.parse(localStorage.getItem(k)||"null")}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const SKEY="mihrab-"+key;
+let mode="daily", today=dailySet();
+let st=store.get(SKEY)||{idx:0,phase:"aim",guesses:[]};
+const save=()=>{if(mode==="daily")store.set(SKEY,st)};
+let aim=0;
+
+// Dial
+const NS="http://www.w3.org/2000/svg", svg=document.getElementById("dial");
+const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);(p||svg).appendChild(e);return e};
+const P=(a,rad,c=150)=>[c+rad*Math.sin(a*R),c-rad*Math.cos(a*R)];
+el("circle",{cx:150,cy:150,r:146,fill:"var(--surface)",stroke:"var(--line)","stroke-width":1.5});
+// eight-point star, the girih motif at the dial's heart
+const star=[];for(let i=0;i<16;i++){const [x,y]=P(i*22.5,i%2?40:58);star.push(x.toFixed(1)+","+y.toFixed(1))}
+el("polygon",{points:star.join(" "),fill:"none",stroke:"var(--line)","stroke-width":1});
+el("circle",{cx:150,cy:150,r:112,fill:"none",stroke:"var(--line)","stroke-width":1});
+for(let a=0;a<360;a+=5){
+  const big=a%90===0, mid=a%30===0;
+  const [x1,y1]=P(a,146-(big?16:mid?11:a%10===0?7:4)),[x2,y2]=P(a,144);
+  el("line",{x1,y1,x2,y2,stroke:big?"var(--ink)":"var(--muted)","stroke-width":big?2:1});
+  if(mid&&!big){const [tx,ty]=P(a,122);const t=el("text",{x:tx,y:ty+4,"text-anchor":"middle","font-size":10,fill:"var(--muted)","font-family":"IBM Plex Mono, monospace"});t.textContent=a}
+}
+[["N",0],["E",90],["S",180],["W",270]].forEach(([l,a])=>{const [x,y]=P(a,96);const t=el("text",{x,y:y+7,"text-anchor":"middle","font-size":20,"font-weight":700,fill:"var(--ink)","font-family":"Reem Kufi, sans-serif"});t.textContent=l});
+const arc=el("path",{fill:"var(--brass-soft)",stroke:"none"});arc.style.display="none";
+const flatG=el("g",{class:"needle"});flatG.style.display="none";
+el("line",{x1:150,y1:150,x2:150,y2:60,stroke:"var(--muted)","stroke-width":1.5,"stroke-dasharray":"2 4"},flatG);
+const flatT=el("text",{x:150,y:54,"text-anchor":"middle","font-size":9,fill:"var(--muted)","font-family":"IBM Plex Sans, sans-serif","letter-spacing":".08em"},flatG);flatT.textContent="FLAT MAP";
+const truthG=el("g",{class:"needle"});truthG.style.display="none";
+el("line",{x1:150,y1:150,x2:150,y2:38,stroke:"var(--truth)","stroke-width":2.5,"stroke-dasharray":"5 4"},truthG);
+el("rect",{x:141,y:22,width:18,height:18,fill:"var(--truth)",rx:1.5},truthG);
+el("rect",{x:141,y:26,width:18,height:3,fill:"var(--brass)"},truthG);
+const youG=el("g",{class:"needle"});
+el("line",{x1:150,y1:168,x2:150,y2:44,stroke:"var(--brass)","stroke-width":4,"stroke-linecap":"round"},youG);
+el("polygon",{points:"150,26 140,48 160,48",fill:"var(--brass)"},youG);
+el("circle",{cx:150,cy:150,r:8,fill:"var(--ink)"});
+el("circle",{cx:150,cy:150,r:3,fill:"var(--brass)"});
+
+const rot=(g,a)=>g.setAttribute("transform",`rotate(${a} 150 150)`);
+function arcPath(a1,a2,rad){let d=((a2-a1+540)%360)-180;const [x1,y1]=P(a1,rad),[x2,y2]=P(a1+d,rad);
+  return `M150 150 L${x1} ${y1} A${rad} ${rad} 0 0 ${d>0?1:0} ${x2} ${y2} Z`}
+
+const $=id=>document.getElementById(id);
+function setAim(a){aim=Math.round(norm(a))%360;rot(youG,aim);$("deg").textContent=`${aim}° ${point(aim)}`;svg.setAttribute("aria-valuenow",aim)}
+
+let drag=false;
+function fromEvent(e){const b=svg.getBoundingClientRect();return Math.atan2(e.clientX-b.left-b.width/2,-(e.clientY-b.top-b.height/2))/R}
+svg.addEventListener("pointerdown",e=>{if(st.phase!=="aim")return;drag=true;svg.setPointerCapture(e.pointerId);youG.style.transition="none";setAim(fromEvent(e))});
+svg.addEventListener("pointermove",e=>{if(drag)setAim(fromEvent(e))});
+const stop=()=>{drag=false;youG.style.transition=""};
+svg.addEventListener("pointerup",stop);svg.addEventListener("pointercancel",stop);
+svg.addEventListener("keydown",e=>{if(st.phase!=="aim")return;const s=e.shiftKey?10:1;
+  if(e.key==="ArrowRight"||e.key==="ArrowUp"){setAim(aim+s);e.preventDefault()}
+  else if(e.key==="ArrowLeft"||e.key==="ArrowDown"){setAim(aim-s);e.preventDefault()}
+  else if(e.key==="Enter"){act()}});
+
+function setMeta(){$("meta").textContent=mode==="daily"?`No. ${dayNo} · ${key}`:"Practice"}
+function dots(){const d=$("dots");d.innerHTML="";today.forEach((c,i)=>{const s=document.createElement("span");s.className="dot";
+  if(st.guesses[i]!=null){const t=tier(diff(st.guesses[i],c.truth));s.style.background=`var(--${colOf(t)})`;if(t==="mid")s.style.opacity=".6"}
+  if(i===st.idx&&st.phase!=="done")s.classList.add("cur");d.appendChild(s)})}
+
+function showPlay(on){["play","readout","action"].forEach(i=>$(i).hidden=!on);$("dialBox").hidden=!on;if(!on)$("resultBox").hidden=true;$("endBox").hidden=on}
+
+function renderRound(){
+  showPlay(true);setMeta();
+  const c=today[st.idx];
+  $("roundLabel").textContent=`Round ${st.idx+1} of ${N} · You are in`;
+  $("city").textContent=c.name;$("country").textContent=c.country;
+  dots();
+  if(st.phase==="aim"){
+    svg.classList.remove("locked");[truthG,flatG,arc].forEach(g=>g.style.display="none");
+    $("resultBox").hidden=true;$("hint").textContent="Drag the needle toward Makkah";
+    $("action").textContent="Lock in";setAim(0);
+  } else reveal(false);
+}
+
+function reveal(fresh){
+  const c=today[st.idx],g=st.guesses[st.idx],e=Math.round(diff(g,c.truth));
+  svg.classList.add("locked");setAim(g);
+  truthG.style.display="";rot(truthG,fresh?g:c.truth);
+  if(fresh)requestAnimationFrame(()=>requestAnimationFrame(()=>rot(truthG,c.truth)));
+  const gap=diff(c.truth,c.flat);
+  if(gap>=8){flatG.style.display="";rot(flatG,c.flat);flatT.setAttribute("transform",c.flat>90&&c.flat<270?"rotate(180 150 51)":"")}else flatG.style.display="none";
+  arc.setAttribute("d",arcPath(g,c.truth,140));arc.style.display="";
+  const t=tier(e);
+  let note=`Qibla from ${c.name} is <b>${Math.round(c.truth)}° ${point(c.truth)}</b>, ${c.dist.toLocaleString()} km away.`;
+  if(gap>=8)note+=` A flat map says ${Math.round(c.flat)}° ${point(c.flat)}, the dotted line. The globe bends the shortest path ${Math.round(gap)}° away from it.`;
+  const head=e<=2?`<div class="bull">Bullseye</div>`:"";
+  $("resultBox").innerHTML=`${head}<div class="big" style="color:var(--${colOf(t)})">${e}° off · ${scoreOf(e)} pts</div><div class="note">${note}</div>`;
+  $("resultBox").hidden=false;$("hint").textContent="Dashed needle: true qibla";
+  $("action").textContent=st.idx<N-1?"Next city":"See results";
+  if(fresh&&e<=2){const p=$("pulse");p.classList.remove("go");void p.offsetWidth;p.classList.add("go")}
+  dots();
+}
+
+function act(){
+  if(st.phase==="aim"){st.guesses[st.idx]=aim;st.phase="reveal";save();reveal(true)}
+  else if(st.phase==="reveal"){
+    if(st.idx<N-1){st.idx++;st.phase="aim";save();renderRound()}
+    else{st.phase="done";save();if(mode==="daily")record();renderEnd()}
+  }
+}
+$("action").addEventListener("click",act);
+
+function totalOf(){return today.reduce((s,c,i)=>s+scoreOf(Math.round(diff(st.guesses[i],c.truth))),0)}
+function record(){
+  const s=store.get("mihrab-stats")||{played:0,sum:0,best:0,streak:0,maxStreak:0,last:0};
+  if(s.last===dayNo)return;
+  const t=totalOf();
+  s.streak=s.last===dayNo-1?s.streak+1:1;s.maxStreak=Math.max(s.maxStreak,s.streak);
+  s.played++;s.sum+=t;s.best=Math.max(s.best,t);s.last=dayNo;store.set("mihrab-stats",s);
+}
+function miniDial(g,t,col){
+  const L=(a,r)=>P(a,r,32);const [gx,gy]=L(g,24),[tx,ty]=L(t,24);
+  return `<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="29" fill="var(--surface)" stroke="var(--line)"/>
+  <line x1="32" y1="32" x2="${tx.toFixed(1)}" y2="${ty.toFixed(1)}" stroke="var(--truth)" stroke-width="2" stroke-dasharray="3 2"/>
+  <line x1="32" y1="32" x2="${gx.toFixed(1)}" y2="${gy.toFixed(1)}" stroke="var(--${col})" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="32" cy="32" r="3" fill="var(--ink)"/></svg>`}
+
+function renderEnd(){
+  showPlay(false);setMeta();dots();
+  const total=totalOf();let minis="",sq="";
+  today.forEach((c,i)=>{const e=Math.round(diff(st.guesses[i],c.truth)),t=tier(e);sq+=EMOJI[t];
+    minis+=`<div class="mini">${miniDial(st.guesses[i],c.truth,colOf(t))}<div class="e" style="color:var(--${colOf(t)})">${e}°</div><div class="nm">${c.name}</div></div>`});
+  const bulls=today.filter((c,i)=>diff(st.guesses[i],c.truth)<=2).length;
+  const share=`Mihrab No. ${dayNo} · ${rankOf(total)}\n${total}/500 ${sq}${bulls?`\n🎯 x${bulls}`:""}\n${location.origin+location.pathname}`;
+  let statsHtml="";
+  if(mode==="daily"){const s=store.get("mihrab-stats");if(s)statsHtml=`<div class="stats">
+    <div class="stat"><b>${s.played}</b><span>Played</span></div><div class="stat"><b>${Math.round(s.sum/s.played)}</b><span>Average</span></div>
+    <div class="stat"><b>${s.best}</b><span>Best</span></div><div class="stat"><b>${s.streak}</b><span>Streak</span></div></div>`}
+  const box=$("endBox");
+  box.innerHTML=`<div><div class="eyebrow">${mode==="daily"?"Today's score":"Practice score"}</div><div class="score">${total}<small> / 500</small></div><div class="rank">${rankOf(total)}</div></div>
+  <div class="minis">${minis}</div>
+  ${statsHtml}
+  ${mode==="daily"?`<textarea id="share" rows="3" readonly>${share}</textarea>
+  <div class="row"><button class="primary" id="copy" style="width:auto">Copy result</button><span class="hint" id="next"></span></div>`:""}
+  <button class="ghost" id="practice">${mode==="daily"?"Practice with random cities":"Another practice set"}</button>
+  ${mode==="practice"?`<button class="ghost" id="back">Back to today's result</button>`:""}`;
+  if(mode==="daily"){
+    $("copy").addEventListener("click",()=>{
+      const done=()=>{$("copy").textContent="Copied"};
+      try{navigator.clipboard.writeText(share).then(done,()=>{$("share").select();$("copy").textContent="Selected, copy it"})}catch(e){$("share").select()}
+    });
+    const tick=()=>{const n=new Date(),m=new Date(n);m.setHours(24,0,0,0);const s=Math.max(0,Math.floor((m-n)/1000));
+      const nx=$("next");if(nx)nx.textContent=`Next set in ${String(Math.floor(s/3600)).padStart(2,"0")}:${String(Math.floor(s%3600/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`};
+    tick();clearInterval(window.__mt);window.__mt=setInterval(tick,1000);
+  }
+  $("practice").addEventListener("click",()=>{mode="practice";today=pickRandom();st={idx:0,phase:"aim",guesses:[]};renderRound()});
+  if($("back"))$("back").addEventListener("click",()=>{mode="daily";today=dailySet();st=store.get(SKEY);renderEnd()});
+}
+
+if(st.phase==="done")renderEnd();else renderRound();
+})();
+</script>
+
+</body>
+</html>
